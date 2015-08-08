@@ -34,19 +34,19 @@ void delay(int loops);
 
 #ifdef PORTABLE_BOGOMIPS
 /* portable version */
-static void delay(int loops)
+static void delay(long long loops)
 {
-  long i;
-  for (i = loops; i >= 0 ; i--)
-    ;
+  long long i;
+  for (i = loops; i >= 0; i--)
+    asm volatile ("" ::: "memory");
 }
 #endif
 
 int
 main(void)
 {
-  unsigned long loops_per_sec = 1;
-  unsigned long ticks;
+  unsigned long long loops_per_sec = 1;
+  unsigned long long ticks;
   
   printf("Calibrating delay loop.. ");
   fflush(stdout);
@@ -57,7 +57,7 @@ main(void)
     ticks = clock() - ticks;
     if (ticks >= CLOCKS_PER_SEC) {
       loops_per_sec = (loops_per_sec / ticks) * CLOCKS_PER_SEC;
-      printf("ok - %lu.%02lu BogoMips\n",
+      printf("ok - %llu.%02llu BogoMips\n",
  	     loops_per_sec/500000,
 	     (loops_per_sec/5000) % 100
 	     );

@@ -20,14 +20,17 @@ DEFS	= -DPORTABLE_BOGOMIPS
 
 # use these flags if using gcc
 CC	= gcc
-CFLAGS	= -Wall -O2 -fomit-frame-pointer -finline-functions -N -s
+CFLAGS	= -Wall -O3 -g -fomit-frame-pointer -finline-functions -static
 
 # use these flags if you are not using gcc; modify as needed
 #CC	= cc
 #CFLAGS	= -O
 
-bogomips: bogomips.c
-	$(CC) $(DEFS) $(CFLAGS) -o bogomips bogomips.c
+bogomips.nat bogomips.arm: bogomips.c Makefile
+	$(CC) $(DEFS) $(CFLAGS) -o bogomips.nat bogomips.c
+	objdump -d --source bogomips.nat > bogomips.nat.asm
+	arm-linux-gnueabi-gcc $(DEFS) $(CFLAGS) -o bogomips.arm bogomips.c
+	arm-linux-gnueabi-objdump -d --source bogomips.arm > bogomips.arm.asm
 
 clean:
 	$(RM) bogomips
