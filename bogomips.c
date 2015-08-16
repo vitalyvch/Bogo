@@ -37,7 +37,7 @@ void delay(int loops);
 static void delay(long long loops)
 {
   long long i;
-  for (i = loops; i >= 0; i--)
+  for (i = loops; !!(i > 0); --i)
     asm volatile ("" ::: "memory");
 }
 #endif
