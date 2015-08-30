@@ -1,22 +1,100 @@
-Tired of rebooting your system so you can see how many BogoMIPS it's
-running at today?  Want to impress your friends?  Be the first person
-on your block to run the standalone bogomips program.  Now you can
-measure BogoMIPs all day long without having to bring your system
-down.  This could be the "killer app" that Linux has been waiting for.
+Standalone BogoMIPS calculator, v1.4.2.
 
-"Bogomips" is a standalone program that displays your system
-performance using one of the world's most recognized benchmarks.  It
-uses the same code that is used in the Linux kernel while booting, but
-runs as a user program.
+Based on the Linux kernel code in init/main.c and __delay as defined
+on multiple platforms.  Also based on Jeff Tranter's bogomips calculator.
 
-A man page and make file are included. Detailed instructions for
-building, running, and installing are in the file INSTALLNG.
+For information on how to interpret the results, see the BogoMIPS 
+Mini-HOWTO document.
 
-Version 1.3 of BogoMIPs is now portable and should run on any system
-that supports an ANSI C compiler and library.
+Author:		Darrick Wong <djwong@gmail.com>
+Last Update:	30 Nov 2005
 
-The package is available from sunsite.unc.edu in the directory
-/pub/Linux/system/Misc
+OVERVIEW
+========
 
-P.S. Don't forget to post your results to the net and impress
-thousands of people around the world!
+A very long time ago (1994), one Jeff Tranter wrote a bogomips calculation
+program, based on the current linux kernel code at the time.  However,
+since then, the kernel has become far more complex and supports many more
+architectures.  While the basic bogomips calculation code hasn't changed
+since that time, each platform has its own version of __delay(), some of
+which result in higher values than Jeff's tight for loop.  Consequently,
+I've fished the various versions of __delay out of kernel 2.4.16, and
+modified the system to use these instead.
+
+SUPPORTED PLATFORMS
+===================
+
+At present, there are 11 different supported targets:
+
+* bogo		A tight for loop, written in C.  This should work in just
+		about any ANSI C compiler.  However, certain compilers may
+		try to optimize out the delay() call.  The result of this
+		is a bogomips value that doesn't match the heuristics
+		presented in the BogoMIPS HOWTO.  If yours does this, change
+		the loop variable to be volatile.
+
+* bogo586	Starting with kernel 2.2.14, Linus made delay() based on
+		a call to the TSC counter.  As far as I can tell, this
+		counter measures how many cycles are consummed by a
+		function.  As a result, bogomips values on Intel doubled.
+		If you have a Pentium, use this.
+
+		Here's an excerpt from the DOSEMU documentation:
+
+		"On 586 and higher CPUs the 'rdtsc' instruction allows
+		access to an internal 64-bit TimeStamp Counter (TSC) which
+		increments at the CPU clock rate."
+
+* bogo386	This version uses the old x86 delay() call.  It is more or
+		less equivalent to the tight loop used in bogo, although
+		it is implemented in x86 assembly.  Use this for anything
+		that came before a Pentium.
+
+* bogoAlpha	This version is, rather obviously, for Alpha processors.
+		It seems to work for many Alpha systems; however, there is
+		a strange discontinuity on certain other systems.
+
+* bogoSparc64	Use this if you have a 64-bit SPARC system with compiler.
+* bogoSparc	Otherwise, use this version for 32-bit SPARC.  You can
+		also use this on Solaris/Sparc.
+
+* bogoPPC	For use with PowerPC chips.
+
+* bogoParisc	For use with PA-RISC boxes.  (HP-UX, for example).
+
+* bogoia64	For use with Itanium boxes.
+
+* bogoarm-ipaq	The ARM version is a little weird.  Because the different
+* bogoarm-shark	ARM vendors have different clocks, the value of HZ has to
+		change depending on what the program was compiled for.
+		There are approximately five different ARM architectures
+		(that I know of), but I've only been able to test on two.
+
+BUILDING
+========
+
+On Unix:
+
+Building is fairly simple.  Unpack the tarball, and then run `make <target>'
+where "target" is one of the platforms discussed above.  This should work
+just fine with any system with GNU make and gcc.  With slight modification,
+it might even work with non GNU tools.
+
+On Windows:
+
+The Borland compiler will work just fine.  The MSVC++ compiler will not.
+I don't know why this is and will investigate it as soon as I get access
+to MSVC.
+
+On MacOS Classic:
+
+Not tested.
+
+INSTALLING
+==========
+
+Run `make install'.
+
+I hope you enjoy this program,
+
+--Darrick

@@ -1,0 +1,8 @@
+v1.4.2  30 Nov 2005:
+* Clean up warnings and exit bogosity (thanks to Sven Joachim)
+
+v1.4.1	16 Dec 2001:
+* Fixed stupid problem with PPC makefile.
+
+v1.4	2 Dec 2001:
+* Initial release.

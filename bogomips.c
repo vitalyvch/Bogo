@@ -1,69 +1,74 @@
 /*
- *                Standalone BogoMips program
+ * bogomips.c -- Program to measure bogomips... this program will probably go
+ * totally wacky with cpufreq enabled.
  *
- * Based on code Linux kernel code in init/main.c and
- * include/linux/delay.h
- *
- * For more information on interpreting the results, see the BogoMIPS
- * Mini-HOWTO document.
- *
- * version: 1.3 
- *  author: Jeff Tranter (Jeff_Tranter@Mitel.COM)
+ * Copyright (C) 2005 Darrick Wong.
  */
-
 #include <stdio.h>
 #include <time.h>
 
-#ifdef CLASSIC_BOGOMIPS
-/* the original code from the Linux kernel */
-static __inline__ void delay(int loops)
+/* this should be approx 2 Bo*oMips to start (note initial shift), and will
+ *    still work even if initially too large, it will just take slightly longer */
+unsigned long loops_per_jiffy = (1<<12);
+
+/* This is the number of bits of precision for the loops_per_jiffy.  Each
+ *    bit takes on average 1.5/HZ seconds.  This (like the original) is a little
+ *       better than 1% */
+#define LPS_PREC 8
+
+extern int HZ;
+
+extern void delay(unsigned int loops);
+
+//plagiarized straight from the 2.4 sources.
+void calibrate_delay(void)
 {
-  __asm__(".align 2,0x90\n1:\tdecl %0\n\tjns 1b": :"a" (loops):"ax");
+        unsigned long ticks, loopbit;
+        int lps_precision = LPS_PREC;
+
+        loops_per_jiffy = (1<<12);
+
+        printf("Calibrating delay loop... ");
+        while (loops_per_jiffy <<= 1) {
+                /* wait for "start of" clock tick */
+                ticks = clock();
+                while (ticks == clock())
+                        /* nothing */;
+                /* Go .. */
+                ticks = clock();
+                delay(loops_per_jiffy);
+                ticks = clock() - ticks;
+                if (ticks)
+                        break;
+        }
+
+/* Do a binary approximation to get loops_per_jiffy set to equal one clock
+   (up to lps_precision bits) */
+
+       loops_per_jiffy >>= 1;
+        loopbit = loops_per_jiffy;
+        while ( lps_precision-- && (loopbit >>= 1) ) {
+                loops_per_jiffy |= loopbit;
+                ticks = clock();
+                while (ticks == clock());
+                ticks = clock();
+                delay(loops_per_jiffy);
+                if (clock() != ticks)   /* longer than 1 tick */
+                        loops_per_jiffy &= ~loopbit;
+        }
+
+
+/* Round the value and print it */      
+        printf("%lu.%02lu BogoMIPS\n",
+                loops_per_jiffy/(500000/HZ),
+                (loops_per_jiffy/(5000/HZ)) % 100);
 }
-#endif
 
-#ifdef QNX_BOGOMIPS
-/* version for QNX C compiler */
-void delay(int loops);
-#pragma aux delay = \
-     "l1:"       \
-     "dec eax"   \
-     "jns l1"    \
-     parm nomemory [eax] modify exact nomemory [eax];
-#endif
+int main(int c, char *v[]) {
+	if(c > 1) {
+		while(1) {calibrate_delay();}
+	}
+        calibrate_delay();
 
-#ifdef PORTABLE_BOGOMIPS
-/* portable version */
-static void delay(int loops)
-{
-  long i;
-  for (i = loops; i >= 0 ; i--)
-    ;
-}
-#endif
-
-int
-main(void)
-{
-  unsigned long loops_per_sec = 1;
-  unsigned long ticks;
-  
-  printf("Calibrating delay loop.. ");
-  fflush(stdout);
-  
-  while ((loops_per_sec <<= 1)) {
-    ticks = clock();
-    delay(loops_per_sec);
-    ticks = clock() - ticks;
-    if (ticks >= CLOCKS_PER_SEC) {
-      loops_per_sec = (loops_per_sec / ticks) * CLOCKS_PER_SEC;
-      printf("ok - %lu.%02lu BogoMips\n",
- 	     loops_per_sec/500000,
-	     (loops_per_sec/5000) % 100
-	     );
-      return 0;
-    }
-  }
-  printf("failed\n");
-  return -1;
+	return 0;
 }

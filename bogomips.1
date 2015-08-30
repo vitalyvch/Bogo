@@ -1,9 +1,9 @@
-.TH BOGOMIPS 1 "4 Jun 1994" "Linux" "User Commands"
+.TH BOGOMIPS 1 "2 Dec 2001" "Linux" "User Commands"
 .SH NAME
-bogomips \- BogoMIPs Benchmark Program
+bogomips \- BogoMIPS Benchmark Program (v1.4)
 .SH SYNOPSIS
 
-bogomips
+bogo{port|586|386|Alpha|Sparc|Sparc64|PPC|arm-shark|arm-ipaq|ia64|Parisc}
 
 .SH DESCRIPTION
 
@@ -24,6 +24,67 @@ No options are currently supported.
 .B Bogomips
 should compile on any ANSI C conforming system.
 
+.SH SUPPORTED PLATFORMS
+
+At present, there are 11 different supported targets:
+
+.B bogoport:
+A tight for loop, written in C.  This should work in just
+about any ANSI C compiler.  However, certain compilers may
+try to optimize out the delay() call.  The result of this
+is a bogomips value that doesn't match the heuristics
+presented in the BogoMIPS HOWTO.  If yours does this, change
+the loop variable to be volatile.
+
+.B bogo586:
+Starting with kernel 2.2.14, Linus made delay() based on
+a call to the TSC counter.  As far as I can tell, this
+counter measures how many cycles are consummed by a
+function.  As a result, bogomips values on Intel doubled.
+If you have a Pentium, use this.
+
+Here's an excerpt from the DOSEMU documentation:
+
+"On 586 and higher CPUs the 'rdtsc' instruction allows
+access to an internal 64-bit TimeStamp Counter (TSC) which
+increments at the CPU clock rate."
+
+.B bogo386:
+This version uses the old x86 delay() call.  It is more or
+less equivalent to the tight loop used in bogo, although
+it is implemented in x86 assembly.  Use this for anything
+that came before a Pentium.
+
+.B bogoAlpha:
+This version is, rather obviously, for Alpha processors.
+It seems to work for many Alpha systems; however, there is
+a strange discontinuity on certain other systems.
+
+.B bogoSparc64:
+Use this if you have a 64-bit SPARC system with compiler.
+
+.B bogoSparc:
+Use this version for 32-bit SPARC.  You can
+also use this on Solaris/Sparc.
+
+.B bogoPPC:
+For use with PowerPC chips.
+
+.B bogoParisc:
+For use with PA-RISC boxes.  (HP-UX, for example).
+
+.B bogoia64:
+For use with Itanium boxes.
+
+.B bogoarm-ipaq:
+The ARM version is a little weird.  Because the different
+
+.B bogoarm-shark:
+ARM vendors have different clocks, the value of HZ has to
+change depending on what the program was compiled for.
+There are approximately five different ARM architectures
+(that I know of), but I've only been able to test on two.
+
 .SH BUGS/LIMITATIONS
 .PP
 The "Bogo" in BogoMIPs stands for bogus. See the BOGOMips Mini-HOWTO
@@ -37,3 +98,5 @@ physics.
 was written by Jeff Tranter (Jeff_Tranter@Mitel.COM) based on code
 from the Linux kernel, by Linus Torvalds. Additional changes suggested
 by Thomas McWilliams and Paul Healy.
+
+Eventually, 2001 rolled by and Darrick Wong <djwong@ucsd.edu> updated it.

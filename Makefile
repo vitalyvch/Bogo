@@ -1,42 +1,69 @@
-#
-# Makefile for bogomips program
-#
+PREFIX		= /usr/local/
+BINDIR		= $(PREFIX)bin/
+MANDIR		= $(PREFIX)man/
 
-# uncomment one of the followng definitions for DEFS
+CC		= gcc
+LINKER		= gcc
+CFLAGS		= -g -O3 -Wall
+LDFLAGS		= -g -O3 -Wall
 
-# use this for the portable bogomips program
-DEFS	= -DPORTABLE_BOGOMIPS
+COMMON_OBJ	= bogomips.o
 
-# use this for the original Linux bogomips program
-#DEFS	= -DCLASSIC_BOGOMIPS
+386_DELAY	= delay_386.o
+PORTABLE_DELAY	= delay_portable.o
+PENTIUM_DELAY	= delay_586.o
+ALPHA_DELAY	= delay_alpha.o
+SPARC64_DELAY	= delay_sparc64.o
+SPARC_DELAY	= delay_sparc.o
+PPC_DELAY	= delay_ppc.c
+PARISC_DELAY	= delay_parisc.o
+IA64_DELAY	= delay_ia64.o
+ARM_DELAY	= delay_arm.o
 
-# use this for the QNX specific bogomips program
-#DEFS	= -DQNX_BOGOMIPS
+bogoport:	$(COMMON_OBJ) $(PORTABLE_DELAY)
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(PORTABLE_DELAY) -o bogoport
 
-# uncomment this if your system does not define CLOCKS_PER_SEC
-# should match units returned by clock() function
-# the value below works for SunOS 4.1
-#DEFS	= -DPORTABLE_BOGOMIPS -DCLOCKS_PER_SEC=1000000
+bogo586:	$(COMMON_OBJ) $(PENTIUM_DELAY)
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(PENTIUM_DELAY) -o bogo586
 
-# use these flags if using gcc
-CC	= gcc
-CFLAGS	= -Wall -O2 -fomit-frame-pointer -finline-functions -N -s
+bogo386:	$(COMMON_OBJ) $(386_DELAY)
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(386_DELAY) -o bogo386
 
-# use these flags if you are not using gcc; modify as needed
-#CC	= cc
-#CFLAGS	= -O
+bogoAlpha:	$(COMMON_OBJ) $(ALPHA_DELAY)
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(ALPHA_DELAY) -o bogoAlpha
 
-bogomips: bogomips.c
-	$(CC) $(DEFS) $(CFLAGS) -o bogomips bogomips.c
+bogoSparc64:	$(COMMON_OBJ) $(SPARC64_DELAY)
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(SPARC64_DELAY) -o bogoSparc64
 
-clean:
-	$(RM) bogomips
+bogoSparc:	$(COMMON_OBJ) $(SPARC_DELAY)
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(SPARC_DELAY) -o bogoSparc
 
-install: bogomips bogomips.1
-	cp bogomips /usr/local/bin/bogomips
-	cp bogomips.1 /usr/local/man/man1/bogomips.1
+bogoPPC:	$(COMMON_OBJ) $(PPC_DELAY)
+		$(LINKER) $(LDFLAGS) -Wa,-mregnames $(COMMON_OBJ) $(PPC_DELAY) -o bogoPPC
 
-dist:
-	cd .. ; \
-	tar -czvf bogo-1.2.tar.gz \
-	bogo-1.2/{bogomips.c,bogomips.1,README,INSTALLING,TODO,CHANGES,BUGS,Makefile}
+bogoparisc:	$(COMMON_OBJ) $(PARISC_DELAY)
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(PARISC_DELAY) -o bogoparisc
+
+bogoia64:	$(COMMON_OBJ) $(IA64_DELAY)
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(IA64_DELAY) -o bogoia64
+
+bogoarm-ipaq:	$(COMMON_OBJ)
+		$(CC) $(CFLAGS) -o $(ARM_DELAY) -c delay_arm.S -DHZ_VALUE=100
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(ARM_DELAY) -o bogoarm-ipaq
+
+bogoarm-shark:	$(COMMON_OBJ)
+		$(CC) $(CFLAGS) -o delay_arm.o -c delay_arm.S -DHZ_VALUE=64
+		$(LINKER) $(LDFLAGS) $(COMMON_OBJ) $(ARM_DELAY) -o bogoarm-shark
+
+clean:;		
+		rm -f core bogo386 bogoport bogo586 *.o bogoAlpha bogoSparc \
+			bogoSparc64 bogoPPC bogoparisc bogoia64 bogoarm-shark \
+			bogoarm-ipaq
+
+mrproper:	clean
+		rm -f *~
+
+install:;
+		install -sC `find -perm +1 -name "bogo*"`  $(BINDIR)
+		install -sC bogomips.1 $(MANDIR)
+		
