@@ -12,7 +12,7 @@ runs as a user program.
 A man page and make file are included. Detailed instructions for
 building, running, and installing are in the file INSTALLNG.
 
-Version 1.3 of BogoMIPs is now portable and should run on any system
+Version 1.3.1 of BogoMIPs is now portable and should run on any system
 that supports an ANSI C compiler and library.
 
 The package is available from sunsite.unc.edu in the directory

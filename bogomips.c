@@ -9,6 +9,9 @@
  *
  * version: 1.3 
  *  author: Jeff Tranter (Jeff_Tranter@Mitel.COM)
+ *
+ * version: 1.3.1 
+ *  author: Vitaly Chernooky (vitaly.v.ch@gmail.com)
  */
 
 #include <stdio.h>
